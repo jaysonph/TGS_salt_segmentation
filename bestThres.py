@@ -103,3 +103,4 @@ def best_thres_search():
   plt.ylabel('IoU')
   plt.title('Thresholds vs IoU ({},{})'.format(threshold_best, iou_best))
   plt.legend()
+  return threshold_best
