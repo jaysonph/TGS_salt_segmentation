@@ -1,7 +1,17 @@
 import argparse
 import os
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
+from sklearn.utils import shuffle
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+from keras.preprocessing.image import img_to_array, array_to_img, load_img
+from keras import optimizers, applications
+from keras.models import Model
 from preprocessing import *
+from utils import *
+from model import *
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("depths_path", help="path to depths.csv file here")
@@ -16,7 +26,7 @@ for root, dirs, files in os.walk(args.trainset_path, topdown=False):
   Y = np.zeros([len(files),128,128,1])
   depths_train = np.zeros([len(files),128,128,1])
   
-  for i in range(X.shape[0]):
+  for i in tqdm(range(X.shape[0])):
     
     filename = files[i].replace('.png','')
     
@@ -30,8 +40,23 @@ for root, dirs, files in os.walk(args.trainset_path, topdown=False):
      
     
 # Data augmentation & shuffle
-X = np.concatenate((X, [np.fliplr(img) for img in X], [np.flipud(img) for img in X]), axis=0)
-Y = np.concatenate((Y, [np.fliplr(img) for img in Y], [np.flipud(img) for img in Y]), axis=0)
+X = np.concatenate((X, [flip(img, orientation = 'leftright') for img in X], [flip(img, orientation = 'updown') for img in X]), axis=0)
+Y = np.concatenate((Y, [flip(img, orientation = 'leftright') for img in Y], [flip(img, orientation = 'updown') for img in Y]), axis=0)
 depths_train = np.concatenate((depths_train, depths_train, depths_train), axis=0)
 
-X, Y, depths_train = shuffle(X, Y, depths_train, random_state=1)
+X, Y, depths_train = shuffle(X, Y, depths_train, random_state=2018)
+
+
+# Hyperparameters for the model 
+callbacks = [
+    EarlyStopping(patience=19, verbose=1),
+    ReduceLROnPlateau(patience=5, verbose=1, factor=0.5),
+    ModelCheckpoint('model-tgs-salt-1.h5', monitor='val_IOU_metric',verbose=1, save_best_only=True, save_weights_only=True, mode='max')
+]
+
+opt = keras.optimizers.Nadam(lr=0.01)
+
+# Compile and Train
+model = modified_GCN()
+model.compile(optimizer=opt, loss=iou_bce_loss, metrics=[IOU_metric])
+model.fit(x=[X,depths_train], y=Y, batch_size=32, epochs=200, callbacks=callbacks, validation_split=0.2)
