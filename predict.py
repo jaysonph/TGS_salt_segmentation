@@ -1,4 +1,5 @@
 import argparse
+import configparser
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,11 +8,18 @@ from keras.preprocessing.image import img_to_array, array_to_img, load_img
 from preprocessing import *
 from model import *
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("depths_path", help="path to depths.csv file here")
 parser.add_argument("testimg_path", help="path to test img here")
 parser.add_argument("weight_path", help="path to model weights here")
 args = parser.parse_args()
+
+
+# Load best threshold
+config = configparser.ConfigParser()
+config.read('config.ini')
+best_threshold = float(config['Parameters']['threshold_best'])
 
 
 # Load img and depth
@@ -42,4 +50,5 @@ output = output/3
 
 img = downsize(output)
 img = np.squeeze(img, axis=-1)
+img = (img >= best_threshold)*255
 plt.imshow(img)
