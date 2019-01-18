@@ -1,3 +1,10 @@
+import numpy as np
+import tensorflow as tf
+import keras
+from keras.models import Model
+from keras.layers import Input, Conv2D, BatchNormalization, Activation, MaxPooling2D, Conv2DTranspose, Concatenate, Add
+from backend import *
+
 def modified_GCN():
   
   pic = Input(shape=(128,128,1))
