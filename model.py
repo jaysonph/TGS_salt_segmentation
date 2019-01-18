@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as n
 import tensorflow as tf
 import keras
 from keras.models import Model
