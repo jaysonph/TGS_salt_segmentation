@@ -88,19 +88,3 @@ def iou_metric_batch(y_true_in, y_pred_in):
         value = iou_metric(y_true_in[batch], y_pred_in[batch])
         metric.append(value)
     return np.mean(metric)
-
-def best_thres_search():
-  thresholds = np.linspace(0.3,0.8,50)
-  ious = np.array([iou_metric_batch(val_y, np.int32((output_valid) > threshold)) for threshold in tqdm(thresholds, total = len(thresholds) )])
-  threshold_best_index = np.argmax(ious)
-  iou_best = ious[threshold_best_index]
-  threshold_best = thresholds[threshold_best_index]
-
-  # Visualize the threshold vs ious graph
-  plt.plot(thresholds, ious)
-  plt.plot(threshold_best, iou_best, 'rx', label = 'Best threshold')
-  plt.xlabel('Thresholds')
-  plt.ylabel('IoU')
-  plt.title('Thresholds vs IoU ({},{})'.format(threshold_best, iou_best))
-  plt.legend()
-  return threshold_best
