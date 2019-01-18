@@ -1,4 +1,5 @@
 import argparse
+import configparser
 import os
 import numpy as np
 import pandas as pd
@@ -11,6 +12,10 @@ from keras.models import Model
 from preprocessing import *
 from utils import *
 from model import *
+from bestThres_utils import *
+
+config = configparser.ConfigParser()
+config['Parameters'] = {}
 
 
 parser = argparse.ArgumentParser()
@@ -60,3 +65,26 @@ opt = keras.optimizers.Nadam(lr=0.01)
 model = modified_GCN()
 model.compile(optimizer=opt, loss=iou_bce_loss, metrics=[IOU_metric])
 model.fit(x=[X,depths_train], y=Y, batch_size=32, epochs=200, callbacks=callbacks, validation_split=0.2)
+
+
+
+# Best Threshold searching
+thresholds = np.linspace(0.3,0.8,50)
+ious = np.array([iou_metric_batch(val_y, np.int32((output_valid) > threshold)) for threshold in tqdm(thresholds, total = len(thresholds) )])
+threshold_best_index = np.argmax(ious)
+iou_best = ious[threshold_best_index]
+threshold_best = thresholds[threshold_best_index]
+
+# Visualize the threshold vs ious graph
+plt.plot(thresholds, ious)
+plt.plot(threshold_best, iou_best, 'rx', label = 'Best threshold')
+plt.xlabel('Thresholds')
+plt.ylabel('IoU')
+plt.title('Thresholds vs IoU ({},{})'.format(threshold_best, iou_best))
+plt.legend()
+
+
+# Save best threshold to the config file
+config['Parameters']['threshold_best'] = str(threshold_best)
+with open('config.ini', 'w') as configfile:
+  config.write(configfile)
