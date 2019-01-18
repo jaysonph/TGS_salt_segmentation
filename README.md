@@ -1,5 +1,7 @@
 # TGS_salt_segmentation
-Image segmentation using Deep Learning
+Image segmentation using Deep Learning. An algorithm that automatically and accurately identifies if a subsurface target is salt or not.
+
+
 ## Data distribution
 The depths of training and test data are distributed as below.
 
